@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人机辩论 · 轴读数</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="viz-root">
+
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <strong>人机辩论</strong>
+    <span class="muted">embedding → 四轴 → 音频参数</span>
+  </div>
+  <div class="topbar-right">
+    <input id="motion" class="topic" placeholder="辩题写成陈述句，例：微信聊天应该用句号">
+    <select id="sidepick" class="topic sel" title="谁站哪一边">
+      <option value="">抽签定边</option>
+      <option value="con">我站正方</option>
+      <option value="pro">我站反方</option>
+    </select>
+    <button id="reset" class="btn ghost">开新一场</button>
+    <span id="mockbadge" class="badge warn" hidden>MOCK 模式 · 向量是噪声</span>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ── 左：辩论 ──────────────────────────────────────────── -->
+  <section class="pane chat">
+    <div class="pane-head">
+      <h2>辩论</h2>
+      <label class="chk"><input type="checkbox" id="auto" checked> 人说完自动让 AI 接话</label>
+    </div>
+
+    <div id="stance" class="stance"></div>
+    <div id="transcript" class="transcript"></div>
+
+    <div class="composer">
+      <textarea id="input" rows="3" placeholder="轮到你了。Enter 发送，Shift+Enter 换行。"></textarea>
+      <div class="composer-foot">
+        <span id="typing" class="muted mono"></span>
+        <div class="composer-btns">
+          <button id="aiturn" class="btn ghost">只让 AI 说一轮</button>
+          <button id="send" class="btn">发送</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 右：分析 ──────────────────────────────────────────── -->
+  <section class="pane analysis">
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="turn">本轮</button>
+      <button class="tab" data-tab="stats">统计</button>
+      <button class="tab" data-tab="diag">轴诊断</button>
+      <button class="tab" data-tab="conf">配置</button>
+    </nav>
+
+    <div class="tabbody">
+      <div class="tabpane active" id="pane-turn"></div>
+      <div class="tabpane" id="pane-stats"></div>
+      <div class="tabpane" id="pane-diag"></div>
+      <div class="tabpane" id="pane-conf"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="tip" class="tip" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

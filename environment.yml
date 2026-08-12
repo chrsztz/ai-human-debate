@@ -1,0 +1,13 @@
+name: ai-human-debate
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - fastapi>=0.115
+      - uvicorn[standard]>=0.30
+      - openai>=1.50
+      - numpy>=1.26
+      - pyyaml>=6.0
+      - python-dotenv>=1.0
