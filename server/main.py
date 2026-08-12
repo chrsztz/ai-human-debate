@@ -25,6 +25,7 @@ from .calibrate import Calibrator
 from .chat import Debater
 from .config import CFG
 from .embed import Embedder
+from .osc import OscSender
 from .store import Session
 
 STATE: dict = {}
@@ -59,8 +60,10 @@ async def lifespan(app: FastAPI):
     STATE["embedder"] = Embedder(CFG)
     STATE["axes"] = load_or_build(CFG, STATE["embedder"])  # 缺失或锚句变了会自动重建
     STATE["debater"] = Debater(CFG)
+    STATE["osc"] = OscSender(CFG, STATE["axes"].ids)
     _new_session(CFG.debate_motion)
     yield
+    STATE["osc"].shutdown()
 
 
 app = FastAPI(title="ai-human-debate", lifespan=lifespan)
@@ -128,7 +131,23 @@ def state():
         "side_source": s.side_source,
         "turns": [t.to_dict() for t in s.turns],
         "stats": s.stats(),
+        "osc": STATE["osc"].status(),
     }
+
+
+@app.get("/api/osc")
+def osc_status():
+    return STATE["osc"].status()
+
+
+@app.post("/api/osc/test")
+def osc_test():
+    """每条轴单独 0→1→0 扫一遍。辩论输出是零散的，拿它调合成器等于盲调 ——
+    先用一个已知信号把四条链路接对。"""
+    if not STATE["osc"].enabled:
+        raise HTTPException(400, "OSC 没开（OSC_ENABLED=0）")
+    STATE["osc"].sweep()
+    return {"ok": True, "osc": STATE["osc"].status()}
 
 
 @app.get("/api/stats")
@@ -143,7 +162,8 @@ def turn_human(body: TextIn):
         raise HTTPException(400, "空输入")
     s: Session = STATE["session"]
     turn = s.add_turn(text, "human", body.meta)
-    return {"turn": turn.to_dict(), "stats": s.stats()}
+    STATE["osc"].play_turn(turn, s.human_side)
+    return {"turn": turn.to_dict(), "stats": s.stats(), "osc": STATE["osc"].status()}
 
 
 @app.post("/api/turn/ai")
@@ -158,7 +178,8 @@ def turn_ai():
     if not text:
         raise HTTPException(502, "模型返回了空内容（多半是 max_tokens 太小）")
     turn = s.add_turn(text, "ai", meta)
-    return {"turn": turn.to_dict(), "stats": s.stats()}
+    STATE["osc"].play_turn(turn, s.ai_side)
+    return {"turn": turn.to_dict(), "stats": s.stats(), "osc": STATE["osc"].status()}
 
 
 @app.post("/api/analyze")

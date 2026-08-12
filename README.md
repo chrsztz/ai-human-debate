@@ -160,6 +160,119 @@ conda run -n ai-human-debate python scripts/fit_calibration.py
 
 ---
 
+## OSC → Max/MSP
+
+**Python 排时间表，Max 管声音。** 一个回合切成 N 个片段就是 N 组参数，全部瞬间发出去的话
+Max 在 1 毫秒内收完、之后什么都没有 —— 没有可播放的时间轨迹。片段时长来自片段宽度，
+那是 Python 侧的事实。反过来，插值必须在 Max 那边：Python 只发「目标值 + 滑行多久」，
+由 `[line]` 去插，不做 100Hz 的推送。
+
+发的是 **unit（0~1，已校准）**，不是 raw。校准层存在的意义就是产出这个值，
+在 Max 里再缩放一次等于有两个地方管校准。轴 → 宏控制（vocality / roughness / …）
+的映射放在 Max 这边，改起来不用重启 Python。
+
+### 消息
+
+| 地址 | 参数 |
+|---|---|
+| `/debate/{human,ai}/turn` | `turn_id` `side`(0=正 1=反) `n_segments` `total_ms` |
+| `/debate/{human,ai}/seg` | `index` `embodiment` `certainty` `concreteness` `affiliation` `ramp_ms` `hold_ms` |
+| `/debate/{human,ai}/end` | `turn_id` `interrupted`(0/1) |
+| `/debate/idle` | `ms_since_last` |
+
+按说话人分地址是因为这个作品就是两个声部 —— `[route /debate/human/seg /debate/ai/seg]`
+接完就分好了。**时间参数排在四个轴值右边**是故意的：Max 的 `[unpack]` 从右往左出，
+这样 `ramp_ms` 会先到 `[line]` 的右入口设好滑行时间，四个轴值随后进左入口触发滑行。
+放前面的话每次滑行都会用上一个片段的时长。
+
+### 调试顺序
+
+**先跑扫描信号，再跑辩论。** 辩论输出是零散的、值域窄的，拿它调合成器等于盲调 ——
+分不清"听不出变化"是映射没接对还是参数根本没动。
+
+```bash
+conda run -n ai-human-debate python scripts/osc_sweep.py
+```
+
+四条轴依次 0→1→0（三角波，端点正好踩到 0 和 1），Max 里四个数必须一个一个亮起来，
+顺序和终端打印一致。对上了再跑辩论。服务跑起来之后，「配置」页也有一个「测试扫描」按钮。
+
+确认 Python 这边发对了、不用先搭 Max：
+
+```bash
+conda run -n ai-human-debate python scripts/osc_monitor.py
+```
+
+同一个端口只能被一个程序占。要么先关 Max，要么让 monitor 听 7401 并把 `OSC_PORT` 也改成 7401。
+
+- 监视器什么都没有 → Python 没发。看「配置」页的已发消息数、`OSC_ENABLED`
+- 监视器有、Max 没有 → 端口被占 / `udpreceive` 端口号不对 / 防火墙
+- 两边都有但数字不动 → Max 里 `route` 或 `unpack` 接错了
+
+### Max patch
+
+[max/debate-receive.maxpat](max/debate-receive.maxpat) 是一个最小接收端：
+`udpreceive` → `route` → 两路 `unpack` → 每条轴一个 `[line]` + 数字框 + `[s human.embodiment]` 之类。
+turn / end / idle 进 `[print debate]`，在 Max 控制台看。
+
+### 人声部：人机感合成器
+
+[max/human-machine-voice.maxpat](max/human-machine-voice.maxpat)。和接收 patch 同时开着
+（它靠 `[r human.*]` 拿值），点右下角喇叭开 DSP。
+
+**这个声部的基线是机器**，只有当人说出真正有身体的话时才短暂地活过来 —— 那一刻就是作品要让人听见的东西。
+所以 vocality 不是直接等于 embodiment，中间有一道阈值：
+
+```
+vocality = clip((embodiment − 0.45) × 2.2, 0, 1)
+```
+
+embodiment 到 0.45 以上才开始有活体感，0.9 才接近满值。人的读数大部分时间落在阈值以下，
+声音就一直是机器；偶尔冲高的那一两个片段会明显"喘一口气"。这两个数写死在 patch 的 `expr` 里，
+双击就能改 —— **这是全场最该用耳朵调的一个参数**，等你有了几场真实排练的 embodiment 分布再定。
+
+四个宏：
+
+| 宏 | 来源 | 作用 |
+|---|---|---|
+| vocality | embodiment（带阈值） | jitter、shimmer、滑音时间、锯齿嗡鸣量、降采样深度 |
+| roughness | 1 − affiliation | FM 调制指数 + 调制比（整数谐波 → 非整数金属声） |
+| brightness | concreteness | 音高高低、共振峰上移、低通截止（指数曲线 300Hz–12kHz） |
+| gridness | certainty | 音高量化程度：锁半音 ↔ 自由滑 |
+
+信号链：`音高（量化+滑音）→ jitter → 2-op FM + 锯齿层 → 三个静止共振峰 → 低通 → degrade~ → shimmer → 输出`
+
+几个关键点：
+
+- **微观不稳定就是活体感的全部。** 合成音之所以"死"，主要不是波形不对，是完全没有 jitter/shimmer。
+  vocality=0 时这两段整个归零，音高变成绝对稳定 —— 那就是"人机"。
+- **滑音时间也是人机线索**：机器 4ms 直接跳到新音高，活体 300ms 滑过去。
+- **共振峰是静止的。** 真人说话时共振峰一直在动，这里只在片段边界跳一次。所以
+  `OSC_RAMP_FRACTION` 本身就是一个人机旋钮 —— 调小 = 更机械的阶跃，调大 = 更连续的滑移。
+- **FM 的两端都不是人声。** roughness=0 是整数谐波（电子管风琴般僵硬），=1 是非整数金属声，
+  人声在中间那条窄带里。这正好对应"两种非人"。
+
+现在是**持续的 drone**，没有按回合开合。这是故意的：连续音色空间更适合盲调，而且和
+`/debate/idle` 那条静默线索是一路的。要做按回合起停，在接收 patch 里给 `/debate/human/turn`
+和 `/end` 加一对 `[s human.gate]`，再在这边接一个包络。
+
+> 两个 patch 都是程序生成的，对象、端口号、连线都校验过（无孤立对象、无悬空输出），
+> 但**我这边没有 Max，没法真正打开听**。声音上的取值（FM 指数 7、共振峰 620/1180/2600、
+> 抖动 0.6%、shimmer 30%）是按经验给的起点，**一定要用耳朵调**。
+> 最快的调法：先不开 OSC，直接拖那四个 flonum 从 0 拉到 1，听每一个单独在干什么。
+
+### 时序
+
+片段时长 = `宽度 × OSC_MS_PER_WIDTH × OSC_TIME_SCALE`，夹在 `[OSC_MIN_SEG_MS, OSC_MAX_SEG_MS]`。
+默认 90ms/宽度 ≈ 一个 56 宽的子句 5 秒，接近朗读速度；嫌慢调 `OSC_TIME_SCALE`。
+「本轮」页的片段表有每一片的实际时长，回合标题上有总时长。
+
+**新回合撞上正在播的回合默认排队，不抢占**（`OSC_ON_OVERLAP=queue`）。抢占看着更实时，
+实际是灾难：AI 的回复几秒就到，会把人那一轮的声音砍在第一个片段上 —— 人基本听不见，
+而这个作品讲的就是人和 AI 的关系。队列不会无限涨：一个回合的音频十几秒，人打一轮字要几十秒。
+真积压到 `OSC_QUEUE_MAX` 以上说明节奏已经失控，那时丢掉最旧的几轮反而是对的，
+「配置」页会显示排队数和丢弃数。
+
 ## 已经在记、但今天还没用的数据
 
 人打字的那段时间不是需要遮盖的死区，那是全作品最人的信号 —— 停顿、犹豫、退格重写，
@@ -183,15 +296,25 @@ server/
   store.py             回合、统计、JSONL 落盘
   main.py              FastAPI
 web/                   前端（无构建步骤，原生 JS）
+  osc.py               OSC 发送 + 回合时间表（排队/抢占、静默心跳）
 scripts/
   build_axes.py        重建轴 + 质量报告
   fit_calibration.py   从排练日志拟合 mu/sigma
+  osc_sweep.py         四条轴依次 0→1→0，用来对着已知信号 patch Max
+  osc_monitor.py       监听 OSC 并打印，确认 Python 发对了
+max/
+  debate-receive.maxpat      OSC 接收端（两个声部共用）
+  human-machine-voice.maxpat 人声部的人机感合成器
 data/                  缓存 / 轴 / 校准 / 日志（gitignore）
 ```
 
 ## 下一步
 
-1. 用真实 key 跑几场，看 AI 基线落在 `embodiment` 轴的什么位置
-2. 按 d′ 和轴间余弦回头调锚句
-3. `fit_calibration` → `CALIB_MODE=fitted`
-4. 加 OSC 发送层：四个轴 → vocality / roughness / brightness / gridness 宏控制 → Max/MSP
+1. ~~跑 `osc_sweep.py`，在 Max 里把四条链路接对~~ ✓
+2. ~~人声部的人机感合成器~~ ✓ —— 还需要用耳朵调参数
+3. AI 声部：一个"特别像人"的音色。和人声部共用同一套宏，但基线落在轴的另一端 ——
+   vocality 的阈值反过来（默认就活着，只有 embodiment 掉到很低才显出机械），
+   加 breath noise、共振峰随片段移动、软起音
+4. 跑几场真辩论，看 AI 基线落在 `embodiment` 轴的什么位置，据此定两边的阈值
+5. `fit_calibration` → `CALIB_MODE=fitted`，让参数真正铺满可听范围
+6. 接 `/debate/idle` + 打字时序，做"停顿即信号"那一层

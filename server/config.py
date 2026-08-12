@@ -95,6 +95,25 @@ class Config:
     # tanh 增益：z=±2 时输出约 0.94/0.06。调大 = 更容易撞满量程。
     calib_gain: float = field(default_factory=lambda: _f("CALIB_GAIN", 0.7))
 
+    # ---- OSC → Max/MSP ---------------------------------------------------
+    osc_enabled: bool = field(default_factory=lambda: _b("OSC_ENABLED", True))
+    osc_host: str = field(default_factory=lambda: _s("OSC_HOST", "127.0.0.1"))
+    osc_port: int = field(default_factory=lambda: _i("OSC_PORT", 7400))
+    # 片段时长 = 宽度 × ms_per_width × time_scale，再夹到 [min, max]。
+    # 90 ms/宽度 ≈ 一个 56 宽的子句 5 秒左右，接近朗读速度
+    osc_ms_per_width: float = field(default_factory=lambda: _f("OSC_MS_PER_WIDTH", 90.0))
+    osc_min_seg_ms: int = field(default_factory=lambda: _i("OSC_MIN_SEG_MS", 800))
+    osc_max_seg_ms: int = field(default_factory=lambda: _i("OSC_MAX_SEG_MS", 8000))
+    # 片段时长里有多少用来滑向新值（剩下的保持）。越大越连续、越像一个空间里的移动
+    osc_ramp_fraction: float = field(default_factory=lambda: _f("OSC_RAMP_FRACTION", 0.4))
+    osc_time_scale: float = field(default_factory=lambda: _f("OSC_TIME_SCALE", 1.0))
+    # 新回合撞上正在播的回合怎么办。queue = 排队（默认）；preempt = 抢占。
+    # 千万别默认 preempt：AI 的回复几秒就到，会把人那一轮砍在第一个片段上，人基本听不见
+    osc_on_overlap: str = field(default_factory=lambda: _s("OSC_ON_OVERLAP", "queue"))
+    osc_queue_max: int = field(default_factory=lambda: _i("OSC_QUEUE_MAX", 4))
+    # 静默期心跳。给后面"停顿即信号"那套设计留的口子，今天 Max 那边可以先不接
+    osc_idle_hz: float = field(default_factory=lambda: _f("OSC_IDLE_HZ", 4.0))
+
     # ---- 路径 ------------------------------------------------------------
     root: Path = ROOT
     anchors_file: Path = ROOT / "anchors" / "axes.yaml"

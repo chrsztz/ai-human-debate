@@ -16,12 +16,25 @@ from pathlib import Path
 from . import segment as seg
 
 
+def segment_timing(width: int, cfg) -> tuple[int, int]:
+    """片段宽度 → (播放时长, 滑向新值的时间)。
+
+    时间表算在这里而不是 osc.py，是因为它要同时给三个地方用：OSC 发送、界面显示、
+    JSONL 记录。算一次存进 Segment，谁都不用再推导一遍。
+    """
+    dur = width * cfg.osc_ms_per_width * cfg.osc_time_scale
+    dur = int(max(cfg.osc_min_seg_ms, min(cfg.osc_max_seg_ms, dur)))
+    return dur, int(dur * max(0.0, min(1.0, cfg.osc_ramp_fraction)))
+
+
 @dataclass
 class Segment:
     index: int
     text: str
     width: int
     axes: dict[str, dict[str, float]]  # axis_id -> {raw, z, unit}
+    dur_ms: int = 0                    # 这一片在 Max 里持续多久
+    ramp_ms: int = 0                   # 其中用来滑向新值的部分
 
 
 @dataclass
@@ -77,7 +90,11 @@ class Session:
         for i, (p, row) in enumerate(zip(parts, raw)):
             r = {aid: float(v) for aid, v in zip(self.axes.ids, row)}
             self.calib.observe(r, speaker)
-            segments.append(Segment(index=i, text=p, width=seg.width(p), axes=self.calib.normalize(r)))
+            w = seg.width(p)
+            dur, ramp = segment_timing(w, self.cfg)
+            segments.append(
+                Segment(index=i, text=p, width=w, axes=self.calib.normalize(r), dur_ms=dur, ramp_ms=ramp)
+            )
 
         # 回合级 = 片段的宽度加权平均（长句子说了算），在 raw 层做平均再归一化
         total = sum(s.width for s in segments) or 1

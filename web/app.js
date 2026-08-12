@@ -197,9 +197,10 @@ function renderTurnPane() {
 
   const card = el('div', 'card');
   const head = el('div', 'card-head');
+  const totalMs = t.segments.reduce((a, s) => a + (s.dur_ms || 0), 0);
   head.append(
     el('h3', null, `#${t.id} · ${t.speaker === 'human' ? '人' : 'AI'} · ${t.segments.length} 片段`),
-    el('span', 'muted mono', `${t.text.length} 字`),
+    el('span', 'muted mono', `${t.text.length} 字${totalMs ? ` · OSC ${(totalMs / 1000).toFixed(1)}s` : ''}`),
   );
   card.append(head);
 
@@ -226,6 +227,7 @@ function renderTurnPane() {
   const thead = el('thead'); const hr = el('tr');
   hr.append(el('th', null, '#'), el('th', null, '片段'));
   defs.forEach(d => hr.append(el('th', null, d.name_zh.split(' ')[0])));
+  hr.append(el('th', null, '时长'));
   thead.append(hr); tb.append(thead);
   const body = el('tbody');
   t.segments.forEach(s => {
@@ -236,6 +238,9 @@ function renderTurnPane() {
       td.dataset.tip = `raw ${fx(s.axes[d.id].raw, 4)}   z ${fx(s.axes[d.id].z, 2)}`;
       tr.append(td);
     });
+    const dt = el('td', null, s.dur_ms ? `${(s.dur_ms / 1000).toFixed(1)}s` : '—');
+    if (s.dur_ms) dt.dataset.tip = `宽度 ${s.width} → ${s.dur_ms}ms\n其中 ${s.ramp_ms}ms 用来滑向新值，${s.dur_ms - s.ramp_ms}ms 保持`;
+    tr.append(dt);
     body.append(tr);
   });
   tb.append(body); wrap.append(tb); tcard.append(wrap);
@@ -476,6 +481,8 @@ function renderConfPane() {
     '所以这两条轴的 Cohen\'s d 有一部分是指令造成的，不能当语域证据。作品的主证据轴仍然是 <b>embodiment</b>。');
   pane.append(p);
 
+  pane.append(oscCard());
+
   const l = el('div', 'card');
   l.append(el('h3', null, '排练即语料'));
   note(l,
@@ -483,6 +490,54 @@ function renderConfPane() {
     '<code>python scripts/fit_calibration.py</code>，把 <code>CALIB_MODE</code> 改成 <code>fitted</code> 再重启，' +
     '参数就会真正铺满可听范围 —— 这一步是“能听出区别”和“听不出区别”的分界。');
   pane.append(l);
+}
+
+/* ── OSC → Max/MSP ─────────────────────────────────────── */
+function oscCard() {
+  const o = ST.state.osc || { enabled: false };
+  const card = el('div', 'card');
+  const head = el('div', 'card-head');
+  head.append(el('h3', null, 'OSC → Max/MSP'));
+  head.append(el('span', 'pill ' + (o.enabled ? (o.errors ? 'bad' : 'ok') : 'warn'),
+    o.enabled ? o.target : 'OSC_ENABLED=0'));
+  card.append(head);
+
+  if (o.enabled) {
+    const dl = el('dl', 'kv');
+    dl.append(el('dt', null, '已发消息'), el('dd', null, `${o.sent}${o.errors ? ` · ${o.errors} 个错误` : ''}`));
+    const q = el('dd', null,
+      `${o.playing ? (o.playing === 'human' ? '人' : 'AI') : '空闲'}` +
+      `${o.queued ? ` · 排队 ${o.queued}` : ''}${o.dropped ? ` · 已丢弃 ${o.dropped}` : ''}`);
+    if (o.dropped) q.dataset.tip = '队列超过上限，最旧的回合被丢掉了。\n声音已经远远落后于辩论进度 —— 调小 OSC_TIME_SCALE，或者放慢发言节奏。';
+    dl.append(el('dt', null, `正在播（${o.on_overlap === 'queue' ? '排队' : '抢占'}）`), q);
+    dl.append(el('dt', null, '片段时长'), el('dd', null,
+      `宽度 × ${o.schedule.ms_per_width}ms × ${o.schedule.time_scale}，夹在 ${o.schedule.min_seg_ms}~${o.schedule.max_seg_ms}ms`));
+    dl.append(el('dt', null, '滑行占比'), el('dd', null, `${Math.round(o.schedule.ramp_fraction * 100)}%（其余保持）`));
+    dl.append(el('dt', null, '轴顺序'), el('dd', null, o.axis_order.join('  ')));
+    if (o.last) {
+      dl.append(el('dt', null, '最后一条'), el('dd', null,
+        o.last.error ? `${o.last.address} ⚠ ${o.last.error}` : `${o.last.address}  ${(o.last.args || []).join(' ')}`));
+    }
+    card.append(dl);
+
+    const btn = el('button', 'btn ghost', '测试扫描（四条轴依次 0→1→0，约 10 秒）');
+    btn.style.marginTop = '10px';
+    btn.onclick = async () => {
+      btn.disabled = true;
+      try { await api('/api/osc/test', {}); toast('已开始扫描 —— 看 Max 里四个数是不是一个一个亮起来'); }
+      catch (e) { toast('测试失败：' + e.message); }
+      finally { setTimeout(() => { btn.disabled = false; }, 10500); }
+    };
+    card.append(btn);
+  }
+
+  note(card,
+    '发的是 <b>unit（0~1，已校准）</b>，不是 raw —— 校准层存在的意义就是产出这个值，' +
+    '在 Max 里再缩放一次等于有两个地方管校准。<br>' +
+    'Python 排时间表（片段时长来自片段宽度），Max 只管声音：收到「目标值 + 滑行多久」，用 <code>[line]</code> 插值。' +
+    '<br><br><code>/debate/{human,ai}/seg</code> &nbsp; index &nbsp; ' + (o.axis_order || []).join(' ') + ' &nbsp; ramp_ms &nbsp; hold_ms' +
+    '<br>时间参数排在轴值右边，是因为 Max 的 <code>[unpack]</code> 从右往左出 —— 这样 ramp_ms 会先到 <code>[line]</code> 的右入口。');
+  return card;
 }
 
 /* ── 打字时序（今天不用，但现在开始记，后面做停顿设计就不用重排） ── */
@@ -516,6 +571,7 @@ function setBusy(b) {
 function applyTurn(res) {
   ST.state.turns.push(res.turn);
   ST.state.stats = res.stats;
+  if (res.osc) ST.state.osc = res.osc;
   ST.sel = res.turn.id;
   renderAll(false);
 }

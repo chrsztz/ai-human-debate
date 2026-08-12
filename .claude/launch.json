@@ -6,6 +6,12 @@
       "runtimeExecutable": "/opt/anaconda3/envs/ai-human-debate/bin/uvicorn",
       "runtimeArgs": ["server.main:app", "--reload", "--port", "8848"],
       "port": 8848
+    },
+    {
+      "name": "debate-alt",
+      "runtimeExecutable": "/opt/anaconda3/envs/ai-human-debate/bin/uvicorn",
+      "runtimeArgs": ["server.main:app", "--reload", "--port", "8849"],
+      "port": 8849
     }
   ]
 }
