@@ -220,3 +220,10 @@ __marimo__/
 # ai-human-debate
 data/
 .DS_Store
+
+# 音频采样：二进制进 git 历史就永久留在里面了，38MB 不值得。
+# 需要版本化的话把下面几行删掉再 git add -f
+max/*.wav
+max/*.aiff
+max/*.aif
+max/*.m4a

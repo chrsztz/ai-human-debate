@@ -126,6 +126,33 @@ class OscSender:
                    "total_ms": len(segs) * step_ms}
         self._enqueue(payload, preempt=True)  # 测试信号永远插队
 
+    def send_now(self, address: str, args: list) -> None:
+        """绕开回合调度器直接发。打字事件是实时的，排进队列就没有意义了。"""
+        if self.enabled:
+            self._send(address, args)
+
+    def set_baseline(self, speaker: str, base: dict[str, float]) -> None:
+        """缓慢漂移的基线 = 该说话人 embodiment 等四轴的移动平均。
+
+        位置 = 固定基线（声部身份）+ 缓慢漂移（这个）+ 瞬时偏移（当前片段）。
+        三个时间尺度里只有第一个是设计的，后两个完全由读数决定 ——
+        人越说越具身他的合成器就越活，AI 一直 hedging 它就越僵，
+        两条线靠近或者交叉都不是安排出来的。
+        """
+        if self.enabled:
+            self._send(f"/debate/{speaker}/base", [round(float(base.get(a, 0.5)), 5) for a in self.axis_ids])
+
+    def send_vitality(self, v: dict) -> None:
+        """两个声部在"活体度"轴上的位置 —— 整个作品的头号参数。
+
+        一个数就够：Max 那边接一个 [r human.vitality] 去顶 vocality 的基线即可。
+        confidence 一并送出，想让早期的漂移更收敛可以再乘一次。
+        """
+        if not self.enabled:
+            return
+        for spk in ("human", "ai"):
+            self._send(f"/debate/{spk}/vitality", [float(v[spk]), float(v["confidence"]), int(v["turns"])])
+
     def status(self) -> dict:
         return {
             "enabled": self.enabled,
@@ -192,10 +219,28 @@ class OscSender:
             elif self.cfg.osc_idle_hz > 0:
                 self._send("/debate/idle", [int((time.time() - self._last_event) * 1000)])
 
+    def _gate(self, spk: str, speaking: bool) -> None:
+        """开合。不发声的一方降到 residue_level，不是 0 —— 见 config 里的说明。"""
+        if speaking:
+            self._send(f"/debate/{spk}/gate", [1, 1.0, 800])
+        else:
+            self._send(f"/debate/{spk}/gate", [0, self.cfg.osc_residue_level, self.cfg.osc_tail_ms])
+
+    def _dissolve(self, spk: str) -> None:
+        """残留期：四个轴全部缓慢漂向 0.5 —— 身份特征在沉默里化掉。
+
+        复用 seg 消息，Max 那边不需要任何新逻辑：它本来就会按 ramp_ms 滑过去。
+        """
+        n = len(self.axis_ids)
+        self._send(f"/debate/{spk}/seg", [-1, *([0.5] * n), self.cfg.osc_dissolve_ms, 0])
+
     def _play(self, p: dict, gen: int) -> None:
         spk = p["speaker"]
+        other = "ai" if spk == "human" else "human"
         self.playing = spk
         self._send(f"/debate/{spk}/turn", [p["id"], p["side"], len(p["segments"]), p["total_ms"]])
+        self._gate(spk, True)
+        self._gate(other, False)          # 保证任何时刻只有一方在前景
 
         interrupted = 0
         for s in p["segments"]:
@@ -206,6 +251,10 @@ class OscSender:
             if self._wait((s["ramp_ms"] + s["hold_ms"]) / 1000.0, gen):
                 interrupted = 1
                 break
+
+        if p["id"] >= 0:                  # sweep（id=-1）不参与开合，否则测试信号会被压掉
+            self._gate(spk, False)
+            self._dissolve(spk)
 
         self._send(f"/debate/{spk}/end", [p["id"], interrupted])
         self.playing = None

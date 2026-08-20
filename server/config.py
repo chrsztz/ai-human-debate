@@ -111,8 +111,38 @@ class Config:
     # 千万别默认 preempt：AI 的回复几秒就到，会把人那一轮砍在第一个片段上，人基本听不见
     osc_on_overlap: str = field(default_factory=lambda: _s("OSC_ON_OVERLAP", "queue"))
     osc_queue_max: int = field(default_factory=lambda: _i("OSC_QUEUE_MAX", 4))
-    # 静默期心跳。给后面"停顿即信号"那套设计留的口子，今天 Max 那边可以先不接
+    # 静默期心跳
     osc_idle_hz: float = field(default_factory=lambda: _f("OSC_IDLE_HZ", 4.0))
+
+    # ---- 开合 ------------------------------------------------------------
+    # 不发声的一方保留的音量。绝不能是 0：交叉那一刻只有两个声音同时在场才听得见，
+    # 人耳对相隔几十秒的音色做不了比较。
+    osc_residue_level: float = field(default_factory=lambda: _f("OSC_RESIDUE_LEVEL", 0.01))
+    osc_tail_ms: int = field(default_factory=lambda: _i("OSC_TAIL_MS", 4000))
+    # 残留期四个轴向 0.5 漂移的时长 —— 说话者的身份特征在沉默里溶解。
+    # 这一步不需要 Max 加逻辑：就是一条 ramp 很长、全部指向 0.5 的 seg 消息
+    osc_dissolve_ms: int = field(default_factory=lambda: _i("OSC_DISSOLVE_MS", 14000))
+    # 基线漂移的 EMA 系数。越小漂得越慢，整场辩论才看得出走势
+    osc_baseline_alpha: float = field(default_factory=lambda: _f("OSC_BASELINE_ALPHA", 0.18))
+
+    # ---- 声部位置的长时漂移（人越来越人 / 机器越来越机器）------------------
+    # 证据里离散度占多少。人的读数铺得开、AI 挤在中间 —— 这个差异比均值差大得多，
+    # 而且方差本身就是"活体感"的字面定义
+    drift_dispersion_weight: float = field(default_factory=lambda: _f("DRIFT_DISPERSION_WEIGHT", 0.65))
+    drift_gain: float = field(default_factory=lambda: _f("DRIFT_GAIN", 1.6))
+    # 置信度 n/(n+k)：轮数越多越敢让证据说话。放大观察，不替代观察
+    drift_confidence_k: float = field(default_factory=lambda: _f("DRIFT_CONFIDENCE_K", 4.0))
+    # 纯轮数斜坡的权重。这一项跟谁说了什么无关，是彻头彻尾的断言 ——
+    # 单独拎出来就是为了让你随时知道自己用了多少。展览要保证效果时调它
+    drift_hard_weight: float = field(default_factory=lambda: _f("DRIFT_HARD_WEIGHT", 0.25))
+    drift_full_turns: int = field(default_factory=lambda: _i("DRIFT_FULL_TURNS", 12))
+
+    # ---- 打字层（第三个声部）----------------------------------------------
+    # 人打字那段时间不是要遮盖的死区，是全作品最"人"的信号。
+    # AI 那侧的对应物是"没有" —— 文本瞬间成块到达，无过程、无犹豫。
+    typing_enabled: bool = field(default_factory=lambda: _b("TYPING_ENABLED", True))
+    # 停顿超过这个值开始持续播报，让声音有"卡住了"的实时反馈
+    typing_pause_ms: int = field(default_factory=lambda: _i("TYPING_PAUSE_MS", 1200))
 
     # ---- 路径 ------------------------------------------------------------
     root: Path = ROOT

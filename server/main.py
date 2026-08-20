@@ -15,7 +15,7 @@ import random
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -150,6 +150,44 @@ def osc_test():
     return {"ok": True, "osc": STATE["osc"].status()}
 
 
+@app.websocket("/ws/typing")
+async def ws_typing(ws: WebSocket):
+    """按键事件的实时通道 —— 第三个声部的素材来源。
+
+    为什么必须是实时的：原来的 typing_ms / backspaces 是回合结束后随文本一起送上来的
+    汇总。用打完字之后才到的数据做不出"正在犹豫"的声音 —— 那是事后统计，不是信号。
+
+    为什么是 WebSocket：按键 5~10 次/秒，每次一个 HTTP 请求是拿错了工具。
+
+    AI 那侧没有对应的通道，而且永远不会有。文本瞬间成块到达，无过程、无犹豫、无退格。
+    这个空缺是结构性的，不是映射出来的。
+    """
+    await ws.accept()
+    osc = STATE["osc"]
+    try:
+        while True:
+            e = await ws.receive_json()
+            if not CFG.typing_enabled:
+                continue
+            t = e.get("t")
+            if t == "key":
+                osc.send_now("/debate/type/key", [int(e.get("dt", 0)), int(e.get("elapsed", 0))])
+            elif t == "back":
+                # 退格是"收回已经说出口的话"，声音上该是一个反向手势
+                osc.send_now("/debate/type/back", [int(e.get("depth", 1)), int(e.get("elapsed", 0))])
+            elif t == "pause":
+                osc.send_now("/debate/type/pause", [int(e.get("ms", 0))])
+            elif t in ("start", "end"):
+                osc.send_now("/debate/type/gate", [1 if t == "start" else 0])
+    except WebSocketDisconnect:
+        pass
+    except Exception:
+        pass
+    finally:
+        # 断线不能把打字层永远卡在开着的状态
+        osc.send_now("/debate/type/gate", [0])
+
+
 @app.get("/api/stats")
 def stats():
     return STATE["session"].stats()
@@ -162,8 +200,11 @@ def turn_human(body: TextIn):
         raise HTTPException(400, "空输入")
     s: Session = STATE["session"]
     turn = s.add_turn(text, "human", body.meta)
+    STATE["osc"].set_baseline("human", s.baseline["human"])
     STATE["osc"].play_turn(turn, s.human_side)
-    return {"turn": turn.to_dict(), "stats": s.stats(), "osc": STATE["osc"].status()}
+    st = s.stats()
+    STATE["osc"].send_vitality(st["drift"])
+    return {"turn": turn.to_dict(), "stats": st, "osc": STATE["osc"].status()}
 
 
 @app.post("/api/turn/ai")
@@ -178,8 +219,11 @@ def turn_ai():
     if not text:
         raise HTTPException(502, "模型返回了空内容（多半是 max_tokens 太小）")
     turn = s.add_turn(text, "ai", meta)
+    STATE["osc"].set_baseline("ai", s.baseline["ai"])
     STATE["osc"].play_turn(turn, s.ai_side)
-    return {"turn": turn.to_dict(), "stats": s.stats(), "osc": STATE["osc"].status()}
+    st = s.stats()
+    STATE["osc"].send_vitality(st["drift"])
+    return {"turn": turn.to_dict(), "stats": st, "osc": STATE["osc"].status()}
 
 
 @app.post("/api/analyze")

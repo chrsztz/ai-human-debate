@@ -338,6 +338,54 @@ function renderStatsPane() {
   });
   pane.append(lg);
 
+  // 声部位置 —— 作品的头号参数
+  const dr = st.drift;
+  if (dr) {
+    const c = el('div', 'card');
+    const h = el('div', 'card-head');
+    h.append(el('h3', null, '声部位置 · 机器 ↔ 活体'),
+      el('span', 'pill' + (dr.turns >= 4 ? ' ok' : ''), `${dr.turns} 轮 · 置信 ${fx(dr.confidence, 2)}`));
+    c.append(h);
+
+    // 同一条轴上的两个位置，几何表示，颜色只区分说话人
+    const lane = el('div', 'dist');
+    lane.style.height = '26px';
+    [['human', dr.human], ['ai', dr.ai]].forEach(([spk, v]) => {
+      const m = el('div', 'mean');
+      m.style.setProperty('--c', spk === 'human' ? 'var(--human)' : 'var(--ai)');
+      m.style.left = `calc(${v * 100}% - 1.5px)`;
+      m.style.width = '4px';
+      m.dataset.tip = `${spk === 'human' ? '人' : 'AI'}  vitality ${fx(v, 3)}`;
+      lane.append(m);
+    });
+    const z = el('div', 'zero'); z.style.left = '50%'; lane.append(z);
+    c.append(lane);
+    const ends = el('div', 'meter-ends');
+    ends.append(el('span', null, '← 机器'), el('span', null, `间距 ${fx(dr.human - dr.ai, 3)}`), el('span', null, '活体 →'));
+    c.append(ends);
+
+    // 效果里有多少是观察、多少是断言 —— 这个比例要一直看得见
+    const tot = Math.abs(dr.soft) + Math.abs(dr.hard) || 1;
+    const bar = el('div', 'dist');
+    bar.style.height = '10px';
+    const s1 = el('div', 'box');
+    s1.style.cssText = `left:0;width:${(Math.abs(dr.soft) / tot) * 100}%;opacity:.9;background:var(--human)`;
+    s1.dataset.tip = `观察 ${fx(dr.soft, 3)}\n离散度之比 ${fx(dr.dispersion.ratio, 2)}（人 ${fx(dr.dispersion.human, 3)} / AI ${fx(dr.dispersion.ai, 3)}）\nembodiment 均值 人 ${fx(dr.embodiment_mean.human, 3)} / AI ${fx(dr.embodiment_mean.ai, 3)}`;
+    const s2 = el('div', 'box');
+    s2.style.cssText = `left:${(Math.abs(dr.soft) / tot) * 100}%;width:${(Math.abs(dr.hard) / tot) * 100}%;opacity:.9;background:var(--warn)`;
+    s2.dataset.tip = `断言 ${fx(dr.hard, 3)}\n纯轮数斜坡，跟谁说了什么无关。\nDRIFT_HARD_WEIGHT 调它。`;
+    bar.append(s1, s2);
+    c.append(el('div', 'axis-note', '效果的来源'), bar);
+    const lg = el('div', 'meter-ends');
+    lg.append(el('span', null, `观察 ${Math.round(Math.abs(dr.soft) / tot * 100)}%`),
+      el('span', null, `断言 ${Math.round(Math.abs(dr.hard) / tot * 100)}%`));
+    c.append(lg);
+    note(c, '离散度就是活体感 —— <b>人的读数铺得开、AI 挤在中间</b>，这个差异比均值差大得多。' +
+      'LLM 的低方差是 post-training 的产物，不是采样不够。<br>' +
+      '轮数只放大证据（置信度），不决定方向；黄色那段才是纯断言。');
+    pane.append(c);
+  }
+
   // 校准
   const cal = ST.state.stats.calibration;
   const cc = el('div', 'card');
@@ -540,9 +588,42 @@ function oscCard() {
   return card;
 }
 
-/* ── 打字时序（今天不用，但现在开始记，后面做停顿设计就不用重排） ── */
-const typing = { start: 0, last: 0, keys: 0, backspaces: 0, pauses: 0, maxPause: 0 };
-function resetTyping() { Object.assign(typing, { start: 0, last: 0, keys: 0, backspaces: 0, pauses: 0, maxPause: 0 }); paintTyping(); }
+/* ── 打字层：实时按键流 ────────────────────────────────────
+   这不是给统计用的，是第三个声部的素材。停顿、犹豫、退格重写 —— AI 没有这个东西，
+   它的输出瞬间成块到达。所以这条通道只有人这一侧有，而且必须实时：
+   回合结束后才送上来的汇总做不出"正在犹豫"的声音。                        */
+const typing = { start: 0, last: 0, keys: 0, backspaces: 0, pauses: 0, maxPause: 0, backRun: 0 };
+
+const wire = {
+  ws: null, ready: false, pauseTimer: null,
+  open() {
+    try {
+      const w = new WebSocket(`ws://${location.host}/ws/typing`);
+      w.onopen = () => { wire.ready = true; };
+      w.onclose = () => { wire.ready = false; wire.ws = null; setTimeout(wire.open, 2000); };
+      w.onerror = () => { };
+      wire.ws = w;
+    } catch { /* 打字层断了不该影响辩论本身 */ }
+  },
+  send(o) { if (wire.ready) { try { wire.ws.send(JSON.stringify(o)); } catch { } } },
+};
+wire.open();
+
+// 停顿要在"卡住的当下"持续播报，不能等这一轮结束才知道停过
+function armPause() {
+  clearInterval(wire.pauseTimer);
+  wire.pauseTimer = setInterval(() => {
+    if (!typing.start) return;
+    const gap = performance.now() - typing.last;
+    if (gap > 1200) wire.send({ t: 'pause', ms: Math.round(gap) });
+  }, 250);
+}
+function resetTyping() {
+  clearInterval(wire.pauseTimer);
+  if (typing.start) wire.send({ t: 'end' });
+  Object.assign(typing, { start: 0, last: 0, keys: 0, backspaces: 0, pauses: 0, maxPause: 0, backRun: 0 });
+  paintTyping();
+}
 function paintTyping() {
   const n = $('#typing');
   if (!typing.start) { n.textContent = ''; return; }
@@ -641,12 +722,22 @@ async function boot() {
   const inp = $('#input');
   inp.addEventListener('keydown', e => {
     const now = performance.now();
-    if (!typing.start) { typing.start = now; typing.last = now; }
+    if (!typing.start) { typing.start = now; typing.last = now; wire.send({ t: 'start' }); armPause(); }
     const gap = now - typing.last;
     if (gap > 2000) { typing.pauses++; typing.maxPause = Math.max(typing.maxPause, gap); }
     typing.last = now; typing.keys++;
-    if (e.key === 'Backspace' || e.key === 'Delete') typing.backspaces++;
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); return; }
+
+    const elapsed = Math.round(now - typing.start);
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      typing.backspaces++;
+      typing.backRun++;   // 连按退格 = 整句推翻重写，声音上该越擦越狠
+      wire.send({ t: 'back', depth: typing.backRun, elapsed });
+    } else {
+      typing.backRun = 0;
+      wire.send({ t: 'key', dt: Math.round(Math.min(gap, 4000)), elapsed });
+    }
   });
 
   $$('#tabs .tab').forEach(t => {
