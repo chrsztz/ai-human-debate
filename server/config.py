@@ -117,13 +117,19 @@ class Config:
     # ---- 开合 ------------------------------------------------------------
     # 不发声的一方保留的音量。绝不能是 0：交叉那一刻只有两个声音同时在场才听得见，
     # 人耳对相隔几十秒的音色做不了比较。
-    osc_residue_level: float = field(default_factory=lambda: _f("OSC_RESIDUE_LEVEL", 0.01))
+    osc_residue_level: float = field(default_factory=lambda: _f("OSC_RESIDUE_LEVEL", 0.04))
     osc_tail_ms: int = field(default_factory=lambda: _i("OSC_TAIL_MS", 4000))
     # 残留期四个轴向 0.5 漂移的时长 —— 说话者的身份特征在沉默里溶解。
     # 这一步不需要 Max 加逻辑：就是一条 ramp 很长、全部指向 0.5 的 seg 消息
     osc_dissolve_ms: int = field(default_factory=lambda: _i("OSC_DISSOLVE_MS", 14000))
-    # 基线漂移的 EMA 系数。越小漂得越慢，整场辩论才看得出走势
-    osc_baseline_alpha: float = field(default_factory=lambda: _f("OSC_BASELINE_ALPHA", 0.18))
+    # ---- 音色交叉渐变 -----------------------------------------------------
+    # 每个说话人 = 两台引擎（人机合成器 + 人声采样）的等功率混合，
+    # 不是在一个固定音色上做特征化妆。xfade 位置：0 = 全合成器，1 = 全人声。
+    # 人从 XFADE_START 出发向 1 走，AI 从 1−XFADE_START 出发向 0 走，
+    # 移动量 = drift 的 trend × XFADE_GAIN。中段两边都是半合成器半人声 ——
+    # 短暂地无法分辨谁是谁，那正是这个作品要的画面。
+    xfade_start: float = field(default_factory=lambda: _f("XFADE_START", 0.1))
+    xfade_gain: float = field(default_factory=lambda: _f("XFADE_GAIN", 3.0))
 
     # ---- 声部位置的长时漂移（人越来越人 / 机器越来越机器）------------------
     # 证据里离散度占多少。人的读数铺得开、AI 挤在中间 —— 这个差异比均值差大得多，
@@ -135,7 +141,7 @@ class Config:
     # 纯轮数斜坡的权重。这一项跟谁说了什么无关，是彻头彻尾的断言 ——
     # 单独拎出来就是为了让你随时知道自己用了多少。展览要保证效果时调它
     drift_hard_weight: float = field(default_factory=lambda: _f("DRIFT_HARD_WEIGHT", 0.25))
-    drift_full_turns: int = field(default_factory=lambda: _i("DRIFT_FULL_TURNS", 12))
+    drift_full_turns: int = field(default_factory=lambda: _i("DRIFT_FULL_TURNS", 8))
 
     # ---- 打字层（第三个声部）----------------------------------------------
     # 人打字那段时间不是要遮盖的死区，是全作品最"人"的信号。

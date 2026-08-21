@@ -80,7 +80,7 @@ class Debater:
             resp = self.client.chat.completions.create(
                 model=self.cfg.chat_model,
                 messages=msgs,
-                max_tokens=self.cfg.max_tokens,
+                max_completion_tokens=self.cfg.max_tokens,
                 temperature=self.cfg.temperature,
             )
             text = (resp.choices[0].message.content or "").strip()

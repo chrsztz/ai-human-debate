@@ -1175,7 +1175,7 @@
       100.0,
       22.0
      ],
-     "text": "r ai.concreteness"
+     "text": "r human.concreteness"
     }
    },
    {
@@ -1193,7 +1193,7 @@
       74.0,
       22.0
      ],
-     "text": "r ai.certainty"
+     "text": "r human.certainty"
     }
    },
    {
@@ -1211,7 +1211,7 @@
       95.0,
       22.0
      ],
-     "text": "r ai.embodiment"
+     "text": "r human.embodiment"
     }
    },
    {
@@ -1867,7 +1867,7 @@
       146.0,
       22.0
      ],
-     "text": "r ai.affiliation"
+     "text": "r human.affiliation"
     }
    },
    {
@@ -2050,7 +2050,7 @@
       138.0,
       22.0
      ],
-     "text": "r ai.gate.level"
+     "text": "r human.gate.level"
     }
    },
    {
@@ -2102,7 +2102,7 @@
       90.0,
       22.0
      ],
-     "text": "r ai.trig"
+     "text": "r human.trig"
     }
    },
    {
@@ -2333,7 +2333,7 @@
      "outlettype": [
       ""
      ],
-     "text": "r ai.w.voice"
+     "text": "r human.w.voice"
     }
    },
    {
@@ -2351,7 +2351,7 @@
      "outlettype": [
       ""
      ],
-     "text": "loadmess 0.99"
+     "text": "loadmess 0.16"
     }
    },
    {
@@ -2403,7 +2403,7 @@
       560,
       20
      ],
-     "text": "交叉渐变权重 × 开合，乘成总增益喂给各层。这台是 AI 的『人声引擎』，开场权重≈1，随 xfade 淡出。loadmess 0.99 = 消息到达前保持开场状态"
+     "text": "交叉渐变权重 × 开合，乘成总增益喂给各层。这台是 人的『人声引擎』，开场权重≈1，随 xfade 淡出。loadmess 0.99 = 消息到达前保持开场状态"
     }
    }
   ],
