@@ -55,7 +55,25 @@ class Debater:
             return ""
         return self.cfg.debate_frame.format(motion=motion.strip(), side=SIDE_LABEL.get(ai_side, ai_side))
 
-    def build_messages(self, history: list[dict], motion: str, ai_side: str) -> list[dict]:
+    def budget(self, ai_turn: int) -> int:
+        """这一轮允许几句话。超出表尾就一直用最后一个值。"""
+        s = self.cfg.sentences
+        return s[min(max(ai_turn, 0), len(s) - 1)]
+
+    def length_text(self, ai_turn: int) -> str:
+        """长度指令。
+
+        hint 里必须有 {n} 占位符，句数才进得去。没有占位符时 str.format 会原样返回，
+        整个调度静默失效 —— 所以这里补一句，宁可指令重复也不要悄悄不生效。
+        """
+        n = self.budget(ai_turn)
+        hint = self.cfg.length_hint.strip()
+        if "{n}" in hint:
+            return hint.format(n=n)
+        directive = f"（请用 {n} 句话回应，不要多写。）"
+        return f"{hint}{directive}" if hint else directive
+
+    def build_messages(self, history: list[dict], motion: str, ai_side: str, ai_turn: int = 0) -> list[dict]:
         frame = self.frame_text(motion, ai_side)
         persona = self.cfg.system_prompt.strip()
         parts = [p for p in (frame, persona) if p]
@@ -63,13 +81,14 @@ class Debater:
 
         conv = [dict(m) for m in history]
         last_user = next((m for m in reversed(conv) if m["role"] == "user"), None)
-        if self.cfg.length_hint.strip() and last_user is not None:
-            last_user["content"] = f"{last_user['content']}\n\n{self.cfg.length_hint.strip()}"
+        hint = self.length_text(ai_turn)
+        if hint and last_user is not None:
+            last_user["content"] = f"{last_user['content']}\n\n{hint}"
 
         return msgs + conv
 
-    def reply(self, history: list[dict], motion: str = "", ai_side: str = "con") -> tuple[str, dict]:
-        msgs = self.build_messages(history, motion, ai_side)
+    def reply(self, history: list[dict], motion: str = "", ai_side: str = "con", ai_turn: int = 0) -> tuple[str, dict]:
+        msgs = self.build_messages(history, motion, ai_side, ai_turn)
         t0 = time.time()
 
         if self.cfg.mock:
@@ -80,7 +99,7 @@ class Debater:
             resp = self.client.chat.completions.create(
                 model=self.cfg.chat_model,
                 messages=msgs,
-                max_tokens=self.cfg.max_tokens,
+                max_completion_tokens=self.cfg.max_tokens,
                 temperature=self.cfg.temperature,
             )
             text = (resp.choices[0].message.content or "").strip()
@@ -92,6 +111,8 @@ class Debater:
             "latency_ms": int((time.time() - t0) * 1000),
             "usage": usage,
             "ai_side": ai_side,
+            "sentence_budget": self.budget(ai_turn),
+            "length_hint": self.length_text(ai_turn),
             # 两个槽分开记：frame = 任务约束，persona = 人格注入
             "debate_frame": self.frame_text(motion, ai_side) or None,
             "persona_prompt": self.cfg.system_prompt.strip() or None,

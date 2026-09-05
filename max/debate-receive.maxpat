@@ -14,66 +14,6 @@
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
-					"id" : "obj-53",
-					"maxclass" : "toggle",
-					"numinlets" : 1,
-					"numoutlets" : 1,
-					"outlettype" : [ "int" ],
-					"parameter_enable" : 0,
-					"patching_rect" : [ 652.0, 613.0, 24.0, 24.0 ]
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-51",
-					"maxclass" : "message",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 700.0, 601.0, 35.0, 22.0 ],
-					"text" : "open"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-47",
-					"maxclass" : "newobj",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 683.0, 638.0, 69.0, 22.0 ],
-					"text" : "sfrecord~ 2"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-45",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 1,
-					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 772.0, 521.0, 66.0, 22.0 ],
-					"text" : "receive~ R"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-15",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 1,
-					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 683.0, 527.0, 64.0, 22.0 ],
-					"text" : "receive~ L"
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"id" : "obj-50",
 					"maxclass" : "toggle",
 					"numinlets" : 1,
@@ -92,7 +32,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 516.0, 1645.0, 109.0, 22.0 ],
-					"text" : "3458"
+					"text" : "80483"
 				}
 
 			}
@@ -104,7 +44,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 125.0, 1592.0, 109.0, 22.0 ],
-					"text" : "91 1674"
+					"text" : "0 0"
 				}
 
 			}
@@ -153,8 +93,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 30.0, 15.0, 300.0, 32.0 ],
-					"text" : "人机辩论 · OSC 接收"
+					"patching_rect" : [ 30.0, 15.0, 300.0, 27.0 ],
+					"text" : "AI-Human Debate: OSC Receiver"
 				}
 
 			}
@@ -164,19 +104,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 30.0, 40.0, 1095.0, 23.0 ],
-					"text" : "四个轴的值 = unit，0~1，已经在 Python 侧校准过，这里不要再缩放。  ramp_ms 走 [line] 右入口（它在 unpack 里排在轴值右边，所以先到）。  turn / end / idle 都进右边的 [print debate]，看 Max 控制台。"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-3",
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 30.0, 76.0, 900.0, 23.0 ],
-					"text" : "先跑  python scripts/osc_sweep.py  —— 四条轴会依次 0→1→0，下面八个数必须一个一个亮起来，顺序和终端打印的一致。对上了再去跑辩论。"
+					"patching_rect" : [ 30.0, 72.321427881717682, 1095.0, 23.0 ],
+					"text" : "values of axes = unit，0~1，calibrated from Python.  ramp_ms to [line] "
 				}
 
 			}
@@ -222,8 +151,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 30.0, 230.0, 220.0, 26.0 ],
-					"text" : "人   /debate/human/seg"
+					"patching_rect" : [ 45.0, 228.0, 220.0, 22.0 ],
+					"text" : "Human   /debate/human/seg"
 				}
 
 			}
@@ -245,8 +174,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 30.0, 300.0, 110.0, 23.0 ],
-					"text" : "具身 ↔ 去身"
+					"patching_rect" : [ 30.0, 300.0, 110.0, 20.0 ],
+					"text" : "embodiment"
 				}
 
 			}
@@ -292,8 +221,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 155.0, 300.0, 110.0, 23.0 ],
-					"text" : "确定 ↔ 对冲"
+					"patching_rect" : [ 155.0, 300.0, 110.0, 20.0 ],
+					"text" : "certainty"
 				}
 
 			}
@@ -326,8 +255,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 280.0, 300.0, 110.0, 23.0 ],
-					"text" : "具体 ↔ 抽象"
+					"patching_rect" : [ 280.0, 300.0, 110.0, 20.0 ],
+					"text" : "concreteness"
 				}
 
 			}
@@ -360,8 +289,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 405.0, 300.0, 110.0, 23.0 ],
-					"text" : "亲和 ↔ 对抗"
+					"patching_rect" : [ 405.0, 300.0, 110.0, 20.0 ],
+					"text" : "affiliation"
 				}
 
 			}
@@ -431,8 +360,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 560.0, 300.0, 110.0, 23.0 ],
-					"text" : "具身 ↔ 去身"
+					"patching_rect" : [ 560.0, 300.0, 110.0, 20.0 ],
+					"text" : "embodiment"
 				}
 
 			}
@@ -478,8 +407,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 685.0, 300.0, 110.0, 23.0 ],
-					"text" : "确定 ↔ 对冲"
+					"patching_rect" : [ 685.0, 300.0, 110.0, 20.0 ],
+					"text" : "certainty"
 				}
 
 			}
@@ -525,8 +454,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 810.0, 300.0, 110.0, 23.0 ],
-					"text" : "具体 ↔ 抽象"
+					"patching_rect" : [ 810.0, 300.0, 110.0, 20.0 ],
+					"text" : "concreteness"
 				}
 
 			}
@@ -572,8 +501,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 935.0, 300.0, 110.0, 23.0 ],
-					"text" : "亲和 ↔ 对抗"
+					"patching_rect" : [ 935.0, 300.0, 110.0, 20.0 ],
+					"text" : "affiliation"
 				}
 
 			}
@@ -610,17 +539,6 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 935.0, 388.0, 110.0, 22.0 ],
 					"text" : "s ai.affiliation"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-43",
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 30.0, 424.0, 1110.0, 23.0 ],
-					"text" : "接下去：把 [r human.embodiment] / [r ai.embodiment] … 拿到你的合成器那边，扇出到 formant 深度、vibrato 量、breath noise、jitter/shimmer 等等。轴 → 宏控制的映射放在 Max 这边改，不用重启 Python。"
 				}
 
 			}
@@ -748,141 +666,6 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 540.0, 1310.0, 521.0, 37.0 ],
 					"text" : "gate.level 是 [目标, 滑行ms] 的列表，直接喂 [line~] → 总线 [*~]。不发声的一方降到 0.12 而不是 0：交叉那一刻要两个声音同时在场才听得见。"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-412",
-					"maxclass" : "newobj",
-					"numinlets" : 3,
-					"numoutlets" : 3,
-					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 40.0, 1420.0, 338.0, 22.0 ],
-					"text" : "route /debate/human/base /debate/ai/base"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-413",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 4,
-					"outlettype" : [ "float", "float", "float", "float" ],
-					"patching_rect" : [ 40.0, 1450.0, 162.0, 22.0 ],
-					"text" : "unpack 0. 0. 0. 0."
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-414",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 40.0, 1480.0, 153.0, 22.0 ],
-					"text" : "s human.base.embodiment"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-415",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 130.0, 1480.0, 133.0, 22.0 ],
-					"text" : "s human.base.certainty"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-416",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 220.0, 1480.0, 159.0, 22.0 ],
-					"text" : "s human.base.concreteness"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-417",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 310.0, 1480.0, 134.0, 22.0 ],
-					"text" : "s human.base.affiliation"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-418",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 4,
-					"outlettype" : [ "float", "float", "float", "float" ],
-					"patching_rect" : [ 420.0, 1450.0, 162.0, 22.0 ],
-					"text" : "unpack 0. 0. 0. 0."
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-419",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 420.0, 1480.0, 126.0, 22.0 ],
-					"text" : "s ai.base.embodiment"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-420",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 510.0, 1480.0, 105.0, 22.0 ],
-					"text" : "s ai.base.certainty"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-421",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 600.0, 1480.0, 131.0, 22.0 ],
-					"text" : "s ai.base.concreteness"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-422",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 690.0, 1480.0, 107.0, 22.0 ],
-					"text" : "s ai.base.affiliation"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-423",
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 40.0, 1512.0, 700.0, 23.0 ],
-					"text" : "位置 = 固定基线(声部身份) + 这一层(该说话人的移动平均) + 瞬时偏移(当前片段)。只有第一项是设计的，后两项完全由读数决定。"
 				}
 
 			}
@@ -1126,139 +909,199 @@
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-602",
+					"id" : "obj-701",
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 40.0, 1526.0, 440.0, 23.0 ],
+					"text" : "── 音色交叉渐变（作品的头号参数）─────────"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-702",
 					"maxclass" : "newobj",
 					"numinlets" : 3,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 40.0, 1560.0, 402.0, 22.0 ],
-					"text" : "route /debate/human/vitality /debate/ai/vitality"
+					"patching_rect" : [ 40.0, 1560.0, 354.0, 22.0 ],
+					"text" : "route /debate/human/xfade /debate/ai/xfade"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-603",
+					"id" : "obj-703",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
-					"numoutlets" : 3,
-					"outlettype" : [ "float", "float", "int" ],
-					"patching_rect" : [ 40.0, 1590.0, 130.0, 22.0 ],
-					"text" : "unpack 0. 0. 0"
+					"numoutlets" : 2,
+					"outlettype" : [ "float", "float" ],
+					"patching_rect" : [ 40.0, 1590.0, 58.0, 22.0 ],
+					"text" : "t f f"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-604",
+					"id" : "obj-704",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 40.0, 1620.0, 194.0, 22.0 ],
+					"text" : "expr cos($f1 * 1.5708)"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-705",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 40.0, 1620.0, 114.0, 22.0 ],
+					"patching_rect" : [ 40.0, 1648.0, 114.0, 22.0 ],
 					"text" : "pack 0. 3000"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-605",
+					"id" : "obj-706",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 40.0, 1650.0, 146.0, 22.0 ],
-					"text" : "s human.vitality"
+					"patching_rect" : [ 40.0, 1676.0, 154.0, 22.0 ],
+					"text" : "s human.w.machine"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-606",
+					"id" : "obj-707",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 170.0, 1620.0, 162.0, 22.0 ],
-					"text" : "s human.confidence"
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 250.0, 1620.0, 194.0, 22.0 ],
+					"text" : "expr sin($f1 * 1.5708)"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-607",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 280.0, 1620.0, 122.0, 22.0 ],
-					"text" : "s human.turns"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-608",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 3,
-					"outlettype" : [ "float", "float", "int" ],
-					"patching_rect" : [ 370.0, 1590.0, 130.0, 22.0 ],
-					"text" : "unpack 0. 0. 0"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-609",
+					"id" : "obj-708",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 370.0, 1620.0, 114.0, 22.0 ],
+					"patching_rect" : [ 250.0, 1648.0, 114.0, 22.0 ],
 					"text" : "pack 0. 3000"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-610",
+					"id" : "obj-709",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 370.0, 1650.0, 122.0, 22.0 ],
-					"text" : "s ai.vitality"
+					"patching_rect" : [ 250.0, 1676.0, 138.0, 22.0 ],
+					"text" : "s human.w.voice"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-611",
+					"id" : "obj-710",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 500.0, 1620.0, 138.0, 22.0 ],
-					"text" : "s ai.confidence"
+					"numoutlets" : 2,
+					"outlettype" : [ "float", "float" ],
+					"patching_rect" : [ 470.0, 1590.0, 58.0, 22.0 ],
+					"text" : "t f f"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-612",
+					"id" : "obj-711",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 610.0, 1620.0, 98.0, 22.0 ],
-					"text" : "s ai.turns"
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 470.0, 1620.0, 194.0, 22.0 ],
+					"text" : "expr cos($f1 * 1.5708)"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-613",
-					"linecount" : 2,
+					"id" : "obj-712",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 470.0, 1648.0, 114.0, 22.0 ],
+					"text" : "pack 0. 3000"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-713",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 470.0, 1676.0, 130.0, 22.0 ],
+					"text" : "s ai.w.machine"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-714",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 680.0, 1620.0, 194.0, 22.0 ],
+					"text" : "expr sin($f1 * 1.5708)"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-715",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 680.0, 1648.0, 114.0, 22.0 ],
+					"text" : "pack 0. 3000"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-716",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 680.0, 1676.0, 114.0, 22.0 ],
+					"text" : "s ai.w.voice"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-717",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 40.0, 1680.0, 806.0, 37.0 ],
-					"text" : "vitality 是 0~1 的一个数，就是这个声部现在站在『机器 ↔ 活体』轴的哪里。已经打包成 [目标, 3000ms] 直接喂 [line]，一轮一轮慢慢挪过去，不会跳。\n人声部：拿它去顶 vocality 那个 expr 的阈值；AI 声部：反过来，vitality 越低越僵。"
+					"patching_rect" : [ 40.0, 1706.0, 1106.0, 23.0 ],
+					"text" : "xfade：0 = 全合成器音色，1 = 全人声采样音色。每个说话人两台引擎同时跑，这里换算成等功率的 cos/sin 权重（中段不塌音量坑，叠加感是『两个都在』）。已打包 [目标, 3000ms]，引擎里直接喂 [line~]。"
 				}
 
 			}
@@ -1281,13 +1124,6 @@
 				"patchline" : 				{
 					"destination" : [ "obj-56", 0 ],
 					"source" : [ "obj-14", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-47", 0 ],
-					"source" : [ "obj-15", 0 ]
 				}
 
 			}
@@ -1431,14 +1267,6 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-402", 0 ],
-					"order" : 3,
-					"source" : [ "obj-4", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-412", 0 ],
 					"order" : 2,
 					"source" : [ "obj-4", 0 ]
 				}
@@ -1455,14 +1283,14 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-5", 0 ],
-					"order" : 4,
+					"order" : 3,
 					"source" : [ "obj-4", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-602", 0 ],
+					"destination" : [ "obj-702", 0 ],
 					"order" : 0,
 					"source" : [ "obj-4", 0 ]
 				}
@@ -1549,76 +1377,6 @@
 				"patchline" : 				{
 					"destination" : [ "obj-42", 0 ],
 					"source" : [ "obj-41", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-413", 0 ],
-					"source" : [ "obj-412", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-418", 0 ],
-					"source" : [ "obj-412", 1 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-414", 0 ],
-					"source" : [ "obj-413", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-415", 0 ],
-					"source" : [ "obj-413", 1 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-416", 0 ],
-					"source" : [ "obj-413", 2 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-417", 0 ],
-					"source" : [ "obj-413", 3 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-419", 0 ],
-					"source" : [ "obj-418", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-420", 0 ],
-					"source" : [ "obj-418", 1 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-421", 0 ],
-					"source" : [ "obj-418", 2 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-422", 0 ],
-					"source" : [ "obj-418", 3 ]
 				}
 
 			}
@@ -1729,13 +1487,6 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-47", 1 ],
-					"source" : [ "obj-45", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
 					"destination" : [ "obj-26", 0 ],
 					"source" : [ "obj-5", 1 ]
 				}
@@ -1771,20 +1522,6 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-47", 0 ],
-					"source" : [ "obj-51", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-47", 0 ],
-					"source" : [ "obj-53", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
 					"destination" : [ "obj-16", 0 ],
 					"source" : [ "obj-56", 0 ]
 				}
@@ -1792,71 +1529,99 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-603", 0 ],
-					"source" : [ "obj-602", 0 ]
+					"destination" : [ "obj-703", 0 ],
+					"source" : [ "obj-702", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-608", 0 ],
-					"source" : [ "obj-602", 1 ]
+					"destination" : [ "obj-710", 0 ],
+					"source" : [ "obj-702", 1 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-604", 0 ],
-					"source" : [ "obj-603", 0 ]
+					"destination" : [ "obj-704", 0 ],
+					"source" : [ "obj-703", 1 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-606", 0 ],
-					"source" : [ "obj-603", 1 ]
+					"destination" : [ "obj-707", 0 ],
+					"source" : [ "obj-703", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-607", 0 ],
-					"source" : [ "obj-603", 2 ]
+					"destination" : [ "obj-705", 0 ],
+					"source" : [ "obj-704", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-605", 0 ],
-					"source" : [ "obj-604", 0 ]
+					"destination" : [ "obj-706", 0 ],
+					"source" : [ "obj-705", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-609", 0 ],
-					"source" : [ "obj-608", 0 ]
+					"destination" : [ "obj-708", 0 ],
+					"source" : [ "obj-707", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-611", 0 ],
-					"source" : [ "obj-608", 1 ]
+					"destination" : [ "obj-709", 0 ],
+					"source" : [ "obj-708", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-612", 0 ],
-					"source" : [ "obj-608", 2 ]
+					"destination" : [ "obj-711", 0 ],
+					"source" : [ "obj-710", 1 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-610", 0 ],
-					"source" : [ "obj-609", 0 ]
+					"destination" : [ "obj-714", 0 ],
+					"source" : [ "obj-710", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-712", 0 ],
+					"source" : [ "obj-711", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-713", 0 ],
+					"source" : [ "obj-712", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-715", 0 ],
+					"source" : [ "obj-714", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-716", 0 ],
+					"source" : [ "obj-715", 0 ]
 				}
 
 			}

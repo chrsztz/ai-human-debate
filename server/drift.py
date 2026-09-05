@@ -62,9 +62,20 @@ def compute(calib, axis_ids: list[str], turns: dict[str, int], cfg) -> dict:
 
     trend = (1.0 - hw) * conf * soft + hw * hard * 0.5
 
+    # 音色交叉渐变的位置（0 = 全合成器，1 = 全人声采样）。
+    # 人从 xfade_start 出发向 1 走，AI 从 1−xfade_start 出发向 0 走 ——
+    # 两条线相向而行，可能在中段交叉。
+    x0 = _clip(cfg.xfade_start, 0.0, 0.5)
+    k = cfg.xfade_gain
+    xfade = {
+        "human": round(_clip(x0 + trend * k, 0.0, 1.0), 4),
+        "ai": round(_clip(1.0 - x0 - trend * k, 0.0, 1.0), 4),
+    }
+
     return {
         "human": round(_clip(0.5 + trend, 0.0, 1.0), 4),
         "ai": round(_clip(0.5 - trend, 0.0, 1.0), 4),
+        "xfade": xfade,
         "turns": n,
         "confidence": round(conf, 3),
         "trend": round(trend, 4),

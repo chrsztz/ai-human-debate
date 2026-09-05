@@ -341,7 +341,7 @@
       320.0,
       32.0
      ],
-     "text": "人 · 人机感合成器"
+     "text": "AI 的机器引擎 · 交叉渐变的另一半"
     }
    },
    {
@@ -420,7 +420,7 @@
       160.0,
       22.0
      ],
-     "text": "r human.embodiment"
+     "text": "r ai.embodiment"
     }
    },
    {
@@ -589,7 +589,7 @@
       168.0,
       22.0
      ],
-     "text": "r human.affiliation"
+     "text": "r ai.affiliation"
     }
    },
    {
@@ -723,7 +723,7 @@
       176.0,
       22.0
      ],
-     "text": "r human.concreteness"
+     "text": "r ai.concreteness"
     }
    },
    {
@@ -802,7 +802,7 @@
       152.0,
       22.0
      ],
-     "text": "r human.certainty"
+     "text": "r ai.certainty"
     }
    },
    {
@@ -1925,7 +1925,7 @@
       162.0,
       22.0
      ],
-     "text": "r human.gate.level"
+     "text": "r ai.gate.level"
     }
    },
    {
@@ -1995,7 +1995,7 @@
      "outlettype": [
       ""
      ],
-     "text": "r human.w.machine"
+     "text": "r ai.w.machine"
     }
    },
    {
@@ -2013,7 +2013,7 @@
      "outlettype": [
       ""
      ],
-     "text": "loadmess 0.99"
+     "text": "loadmess 0.16"
     }
    },
    {

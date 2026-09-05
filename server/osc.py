@@ -131,27 +131,17 @@ class OscSender:
         if self.enabled:
             self._send(address, args)
 
-    def set_baseline(self, speaker: str, base: dict[str, float]) -> None:
-        """缓慢漂移的基线 = 该说话人 embodiment 等四轴的移动平均。
+    def send_xfade(self, drift: dict) -> None:
+        """音色交叉渐变的位置 —— 整个作品的头号参数。
 
-        位置 = 固定基线（声部身份）+ 缓慢漂移（这个）+ 瞬时偏移（当前片段）。
-        三个时间尺度里只有第一个是设计的，后两个完全由读数决定 ——
-        人越说越具身他的合成器就越活，AI 一直 hedging 它就越僵，
-        两条线靠近或者交叉都不是安排出来的。
-        """
-        if self.enabled:
-            self._send(f"/debate/{speaker}/base", [round(float(base.get(a, 0.5)), 5) for a in self.axis_ids])
-
-    def send_vitality(self, v: dict) -> None:
-        """两个声部在"活体度"轴上的位置 —— 整个作品的头号参数。
-
-        一个数就够：Max 那边接一个 [r human.vitality] 去顶 vocality 的基线即可。
-        confidence 一并送出，想让早期的漂移更收敛可以再乘一次。
+        每个说话人 = 人机合成器 + 人声采样两台引擎的等功率混合，这个数就是混合比
+        （0 = 全合成器，1 = 全人声）。接收 patch 把它换算成 cos/sin 两个权重
+        （s {spk}.w.machine / s {spk}.w.voice）分发给两台引擎。
         """
         if not self.enabled:
             return
         for spk in ("human", "ai"):
-            self._send(f"/debate/{spk}/vitality", [float(v[spk]), float(v["confidence"]), int(v["turns"])])
+            self._send(f"/debate/{spk}/xfade", [float(drift["xfade"][spk])])
 
     def status(self) -> dict:
         return {

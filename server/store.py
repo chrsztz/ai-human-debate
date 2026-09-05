@@ -67,12 +67,6 @@ class Session:
         # 界面上的"抽签"标记必须反映实际情况 —— 那是给观众看的一个断言，不能撒谎
         self.side_source = side_source
         self.turns: list[Turn] = []
-        # 每个说话人四条轴的移动平均 —— 声部位置的"缓慢漂移"那一层。
-        # 起点 0.5（中性），随着回合累积才显出走势。
-        self.baseline: dict[str, dict[str, float]] = {
-            "human": {a: 0.5 for a in axis_model.ids},
-            "ai": {a: 0.5 for a in axis_model.ids},
-        }
         self.started = datetime.now()
         self.log_path: Path = cfg.log_dir / f"session-{self.started:%Y%m%d-%H%M%S}.jsonl"
         self._write_header()
@@ -122,15 +116,8 @@ class Session:
             meta=meta or {},
         )
         self.turns.append(turn)
-        self._update_baseline(turn)
         self._append(turn)
         return turn
-
-    def _update_baseline(self, turn: Turn) -> None:
-        a = self.cfg.osc_baseline_alpha
-        b = self.baseline.setdefault(turn.speaker, {x: 0.5 for x in self.axes.ids})
-        for aid in self.axes.ids:
-            b[aid] = (1 - a) * b[aid] + a * float(turn.axes[aid]["unit"])
 
     # ---- 统计 ------------------------------------------------------------
     def stats(self) -> dict:

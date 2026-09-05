@@ -200,10 +200,9 @@ def turn_human(body: TextIn):
         raise HTTPException(400, "空输入")
     s: Session = STATE["session"]
     turn = s.add_turn(text, "human", body.meta)
-    STATE["osc"].set_baseline("human", s.baseline["human"])
     STATE["osc"].play_turn(turn, s.human_side)
     st = s.stats()
-    STATE["osc"].send_vitality(st["drift"])
+    STATE["osc"].send_xfade(st["drift"])
     return {"turn": turn.to_dict(), "stats": st, "osc": STATE["osc"].status()}
 
 
@@ -213,16 +212,16 @@ def turn_ai():
     if not any(t.speaker == "human" for t in s.turns):
         raise HTTPException(400, "还没有人类发言，AI 没得接")
     try:
-        text, meta = STATE["debater"].reply(s.history(), s.motion, s.ai_side)
+        ai_turn = sum(1 for t in s.turns if t.speaker == "ai")
+        text, meta = STATE["debater"].reply(s.history(), s.motion, s.ai_side, ai_turn)
     except Exception as e:  # 把上游报错原样送到前端，别让它变成一个沉默的 500
         raise HTTPException(502, f"{type(e).__name__}: {e}")
     if not text:
         raise HTTPException(502, "模型返回了空内容（多半是 max_tokens 太小）")
     turn = s.add_turn(text, "ai", meta)
-    STATE["osc"].set_baseline("ai", s.baseline["ai"])
     STATE["osc"].play_turn(turn, s.ai_side)
     st = s.stats()
-    STATE["osc"].send_vitality(st["drift"])
+    STATE["osc"].send_xfade(st["drift"])
     return {"turn": turn.to_dict(), "stats": st, "osc": STATE["osc"].status()}
 
 
@@ -269,6 +268,12 @@ WEB = CFG.root / "web"
 @app.get("/")
 def index():
     return FileResponse(WEB / "index.html")
+
+
+@app.get("/live")
+def live():
+    """演出界面：只有气泡和粒子球，没有任何数字。排练调参仍用 / 那个工作界面。"""
+    return FileResponse(WEB / "live.html")
 
 
 app.mount("/static", StaticFiles(directory=WEB), name="static")

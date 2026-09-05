@@ -38,6 +38,8 @@ class Config:
     # text-embedding-3-large 原生 3072 维；截到 1024 对语义差分投影没有可感损失，
     # 缓存体积小 3 倍。要用全维就把 OPENAI_EMBED_DIMS 设成 0。
     embed_dims: int = field(default_factory=lambda: _i("OPENAI_EMBED_DIMS", 1024))
+    # 保险丝，不是油门。真正决定长度的是 sentence_schedule + length_hint；
+    # 这个值只防跑飞，要留足余量，否则会把最后一句截断
     max_tokens: int = field(default_factory=lambda: _i("CHAT_MAX_TOKENS", 400))
     temperature: float = field(default_factory=lambda: _f("CHAT_TEMPERATURE", 1.0))
 
@@ -57,9 +59,22 @@ class Config:
     )
     system_prompt: str = field(default_factory=lambda: _s("CHAT_SYSTEM_PROMPT", ""))
     # 长度约束不是人格调整，是格式约束；但它确实进了 prompt，所以 UI 里会原样显示。
+    #
+    # 长度用 prompt 控，不用 max_tokens。max 是硬截断，会把句子腰斩 ——
+    # 半截子句投到语义轴上是噪声，而且片段边界正好是"说了一句"的触发点，
+    # 截断会让最后一个 trigger 对应一个不完整的语义单元。
+    # prompt 控的是"构思"：模型按几句话来组织，然后落地。max 只当保险丝。
     length_hint: str = field(
-        default_factory=lambda: _s("CHAT_LENGTH_HINT", "（请用不超过 120 字回应，直接进入论点，不要罗列条目。）")
+        default_factory=lambda: _s("CHAT_LENGTH_HINT", "（请用 {n} 句话回应，不要多写，直接进入论点，不要罗列条目。）")
     )
+    # 按 AI 的第几轮取句数，超出用最后一个。开场一句，越辩越长，封顶三句 ——
+    # 节奏上从短促的交锋走向成段的论述
+    sentence_schedule: str = field(default_factory=lambda: _s("CHAT_SENTENCE_SCHEDULE", "1,1,2,2,3"))
+
+    @property
+    def sentences(self) -> list[int]:
+        out = [int(x) for x in self.sentence_schedule.replace("，", ",").split(",") if x.strip()]
+        return out or [2]
 
     # 辩题写成陈述句（"微信聊天应该用句号"），正/反方才没有歧义
     debate_motion: str = field(default_factory=lambda: _s("DEBATE_MOTION", ""))
@@ -122,8 +137,14 @@ class Config:
     # 残留期四个轴向 0.5 漂移的时长 —— 说话者的身份特征在沉默里溶解。
     # 这一步不需要 Max 加逻辑：就是一条 ramp 很长、全部指向 0.5 的 seg 消息
     osc_dissolve_ms: int = field(default_factory=lambda: _i("OSC_DISSOLVE_MS", 14000))
-    # 基线漂移的 EMA 系数。越小漂得越慢，整场辩论才看得出走势
-    osc_baseline_alpha: float = field(default_factory=lambda: _f("OSC_BASELINE_ALPHA", 0.18))
+    # ---- 音色交叉渐变 -----------------------------------------------------
+    # 每个说话人 = 两台引擎（人机合成器 + 人声采样）的等功率混合，
+    # 不是在一个固定音色上做特征化妆。xfade 位置：0 = 全合成器，1 = 全人声。
+    # 人从 XFADE_START 出发向 1 走，AI 从 1−XFADE_START 出发向 0 走，
+    # 移动量 = drift 的 trend × XFADE_GAIN。中段两边都是半合成器半人声 ——
+    # 短暂地无法分辨谁是谁，那正是这个作品要的画面。
+    xfade_start: float = field(default_factory=lambda: _f("XFADE_START", 0.1))
+    xfade_gain: float = field(default_factory=lambda: _f("XFADE_GAIN", 4.5))
 
     # ---- 声部位置的长时漂移（人越来越人 / 机器越来越机器）------------------
     # 证据里离散度占多少。人的读数铺得开、AI 挤在中间 —— 这个差异比均值差大得多，
@@ -134,8 +155,8 @@ class Config:
     drift_confidence_k: float = field(default_factory=lambda: _f("DRIFT_CONFIDENCE_K", 4.0))
     # 纯轮数斜坡的权重。这一项跟谁说了什么无关，是彻头彻尾的断言 ——
     # 单独拎出来就是为了让你随时知道自己用了多少。展览要保证效果时调它
-    drift_hard_weight: float = field(default_factory=lambda: _f("DRIFT_HARD_WEIGHT", 0.25))
-    drift_full_turns: int = field(default_factory=lambda: _i("DRIFT_FULL_TURNS", 12))
+    drift_hard_weight: float = field(default_factory=lambda: _f("DRIFT_HARD_WEIGHT", 0.4))
+    drift_full_turns: int = field(default_factory=lambda: _i("DRIFT_FULL_TURNS", 8))
 
     # ---- 打字层（第三个声部）----------------------------------------------
     # 人打字那段时间不是要遮盖的死区，是全作品最"人"的信号。

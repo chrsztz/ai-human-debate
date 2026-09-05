@@ -471,7 +471,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 1384.000051498413086, 745.0, 95.0, 22.0 ],
-					"text" : "zmap 0. 1. 0 -40"
+					"text" : "zmap 0. 1. -40 0"
 				}
 
 			}
@@ -507,7 +507,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 811.0, 783.0, 95.0, 22.0 ],
-					"text" : "zmap 0. 1. 0 -40"
+					"text" : "zmap 0. 1. -40 0"
 				}
 
 			}
@@ -533,7 +533,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1844.210592269897461, 494.0, 42.0, 22.0 ],
+					"patching_rect" : [ 1849.473750352859497, 496.0, 42.0, 22.0 ],
 					"text" : "r onoff"
 				}
 
@@ -790,8 +790,8 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1997.0, 380.0, 100.0, 22.0 ],
-					"text" : "r ai.concreteness"
+					"patching_rect" : [ 1997.0, 380.0, 127.0, 22.0 ],
+					"text" : "r human.concreteness"
 				}
 
 			}
@@ -802,8 +802,8 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1418.0, 300.0, 74.0, 22.0 ],
-					"text" : "r ai.certainty"
+					"patching_rect" : [ 1418.0, 300.0, 101.0, 22.0 ],
+					"text" : "r human.certainty"
 				}
 
 			}
@@ -814,8 +814,8 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 281.0, 1247.0, 95.0, 22.0 ],
-					"text" : "r ai.embodiment"
+					"patching_rect" : [ 1040.00003719329834, 258.947377681732178, 122.0, 22.0 ],
+					"text" : "r human.embodiment"
 				}
 
 			}
@@ -1179,7 +1179,7 @@
 					"maxclass" : "ezdac~",
 					"numinlets" : 2,
 					"numoutlets" : 0,
-					"patching_rect" : [ 606.122443199157715, 1040.816316604614258, 45.0, 45.0 ]
+					"patching_rect" : [ 586.0, 1109.333366394042969, 45.0, 45.0 ]
 				}
 
 			}
@@ -1193,7 +1193,7 @@
 					"orientation" : 1,
 					"outlettype" : [ "signal", "signal", "", "float", "list" ],
 					"parameter_enable" : 1,
-					"patching_rect" : [ 420.408159255981445, 831.0, 134.0, 47.0 ],
+					"patching_rect" : [ 420.0, 826.0, 134.0, 47.0 ],
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
 							"parameter_initial" : [ 0.0 ],
@@ -1243,7 +1243,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 585.780603408813477, 178.0, 146.0, 22.0 ],
-					"text" : "r ai.affiliation"
+					"text" : "r human.affiliation"
 				}
 
 			}
@@ -1363,7 +1363,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 60.0, 940.0, 138.0, 22.0 ],
-					"text" : "r ai.gate.level"
+					"text" : "r human.gate.level"
 				}
 
 			}
@@ -1398,7 +1398,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 2149.0, 735.0, 90.0, 22.0 ],
-					"text" : "r ai.trig"
+					"text" : "r human.trig"
 				}
 
 			}
@@ -1553,7 +1553,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 60.0, 1030.0, 114.0, 22.0 ],
-					"text" : "r ai.w.voice"
+					"text" : "r human.w.voice"
 				}
 
 			}
@@ -1565,7 +1565,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 210.0, 1030.0, 122.0, 22.0 ],
-					"text" : "loadmess 0.99"
+					"text" : "loadmess 0.16"
 				}
 
 			}
@@ -1601,7 +1601,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 270.0, 1058.0, 560.0, 37.0 ],
-					"text" : "交叉渐变权重 × 开合，乘成总增益喂给各层。这台是 AI 的『人声引擎』，开场权重≈1，随 xfade 淡出。loadmess 0.99 = 消息到达前保持开场状态"
+					"text" : "交叉渐变权重 × 开合，乘成总增益喂给各层。这台是 人的『人声引擎』，开场权重≈1，随 xfade 淡出。loadmess 0.99 = 消息到达前保持开场状态"
 				}
 
 			}

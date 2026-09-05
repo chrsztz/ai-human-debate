@@ -341,27 +341,31 @@ function renderStatsPane() {
   // 声部位置 —— 作品的头号参数
   const dr = st.drift;
   if (dr) {
+    const xf = dr.xfade || { human: dr.human, ai: dr.ai };
     const c = el('div', 'card');
     const h = el('div', 'card-head');
-    h.append(el('h3', null, '声部位置 · 机器 ↔ 活体'),
+    h.append(el('h3', null, '音色位置 · 合成器 ↔ 人声'),
       el('span', 'pill' + (dr.turns >= 4 ? ' ok' : ''), `${dr.turns} 轮 · 置信 ${fx(dr.confidence, 2)}`));
     c.append(h);
 
-    // 同一条轴上的两个位置，几何表示，颜色只区分说话人
+    // 每个说话人 = 两台引擎的等功率混合，这条线上的位置就是混合比。
+    // 人从合成器端出发、AI 从人声端出发，相向而行 —— 交叉就发生在这条线上
     const lane = el('div', 'dist');
     lane.style.height = '26px';
-    [['human', dr.human], ['ai', dr.ai]].forEach(([spk, v]) => {
+    [['human', xf.human], ['ai', xf.ai]].forEach(([spk, v]) => {
       const m = el('div', 'mean');
       m.style.setProperty('--c', spk === 'human' ? 'var(--human)' : 'var(--ai)');
       m.style.left = `calc(${v * 100}% - 1.5px)`;
       m.style.width = '4px';
-      m.dataset.tip = `${spk === 'human' ? '人' : 'AI'}  vitality ${fx(v, 3)}`;
+      m.dataset.tip = `${spk === 'human' ? '人' : 'AI'}  xfade ${fx(v, 3)}\n0 = 全合成器引擎\n1 = 全人声采样引擎`;
       lane.append(m);
     });
     const z = el('div', 'zero'); z.style.left = '50%'; lane.append(z);
     c.append(lane);
     const ends = el('div', 'meter-ends');
-    ends.append(el('span', null, '← 机器'), el('span', null, `间距 ${fx(dr.human - dr.ai, 3)}`), el('span', null, '活体 →'));
+    ends.append(el('span', null, '← 合成器音色'),
+      el('span', null, `人 ${fx(xf.human, 2)} · AI ${fx(xf.ai, 2)}`),
+      el('span', null, '人声音色 →'));
     c.append(ends);
 
     // 效果里有多少是观察、多少是断言 —— 这个比例要一直看得见
