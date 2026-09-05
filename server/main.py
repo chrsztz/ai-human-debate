@@ -212,7 +212,8 @@ def turn_ai():
     if not any(t.speaker == "human" for t in s.turns):
         raise HTTPException(400, "还没有人类发言，AI 没得接")
     try:
-        text, meta = STATE["debater"].reply(s.history(), s.motion, s.ai_side)
+        ai_turn = sum(1 for t in s.turns if t.speaker == "ai")
+        text, meta = STATE["debater"].reply(s.history(), s.motion, s.ai_side, ai_turn)
     except Exception as e:  # 把上游报错原样送到前端，别让它变成一个沉默的 500
         raise HTTPException(502, f"{type(e).__name__}: {e}")
     if not text:

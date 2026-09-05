@@ -4,23 +4,55 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>a debate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/live.css">
 </head>
 <body>
+<div class="stage">
 
-<header class="stage-head">
-  <div class="motion" id="motion"></div>
-  <div class="sides" id="sides"></div>
-</header>
+  <header class="head">
+    <div class="motion-block">
+      <div class="kicker">Motion</div>
+      <div class="motion" id="motion"></div>
+    </div>
+    <div class="head-right">
+      <div class="sides" id="sides"></div>
+      <div class="lot" id="lot"><span class="lot-dot"></span><span id="lot-text"></span></div>
+    </div>
+  </header>
 
-<main class="stream" id="stream"></main>
+  <!-- The crossing, made literal: one orb each, travelling the axis as xfade drifts.
+       They pass each other mid-debate. Nothing on screen explains it. -->
+  <section class="track">
+    <div class="rail"></div>
+    <div class="rail-label left">synthetic</div>
+    <div class="rail-label right">voiced</div>
+    <div class="trail" id="trail"></div>
 
-<footer class="composer">
-  <div class="composer-inner">
-    <textarea id="input" rows="1" placeholder="your turn — press enter" autofocus></textarea>
-  </div>
-</footer>
+    <div class="traveller" id="t-human">
+      <canvas class="orb" id="orb-human"></canvas>
+      <div class="orb-label human">human</div>
+    </div>
+    <div class="traveller" id="t-ai">
+      <canvas class="orb" id="orb-ai"></canvas>
+      <div class="orb-label ai">machine</div>
+    </div>
+  </section>
 
+  <main class="scroll" id="stream"></main>
+
+  <footer class="composer">
+    <div class="tick-wrap"><canvas id="ticks"></canvas></div>
+    <div class="rule"></div>
+    <div class="input-row">
+      <textarea id="input" rows="1" placeholder="your turn — press enter" autofocus></textarea>
+      <div class="enter-hint">enter to speak</div>
+    </div>
+  </footer>
+
+</div>
 <script src="/static/live.js"></script>
 </body>
 </html>
